@@ -75,6 +75,11 @@ body{color:#ecf5ff;font-family:'DM Sans',Arial,sans-serif}
  #greeting,#clockWrap{transition:none!important}
 }
 </style>
+
+<style>
+#musicToggle{position:fixed;right:18px;bottom:18px;z-index:9999;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:12px 18px;background:rgba(3,20,30,.82);color:#fff;font:500 14px 'DM Sans',sans-serif;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 5px 24px rgba(0,0,0,.3)}
+#musicToggle:focus-visible{outline:2px solid #8ceaff;outline-offset:3px}
+</style>
 </head>
 <body>
 <main id="world" class="" aria-label="Jardín nocturno realista con lirio azul, mariposas luminosas y lluvia suave">
@@ -213,6 +218,34 @@ if(DEMO){root.classList.add('demo');$('dateControl').value=fmt(deadline);
  $('setDate').addEventListener('click',()=>{const v=$('dateControl').value;if(!v)return;const date=new Date(v+':00-05:00').getTime();if(Number.isFinite(date))reset(date)});
 }
 initScene();updateClock();requestAnimationFrame(tick);setInterval(updateClock,250);
+})();
+</script>
+
+<audio id="birthdayMusic" src="musica.mp3" loop preload="auto"></audio>
+<button id="musicToggle" type="button" aria-pressed="false">♫ Activar música</button>
+<script>
+(() => {
+  const audio = document.getElementById('birthdayMusic');
+  const button = document.getElementById('musicToggle');
+  audio.volume = 0.55;
+  const updateButton = () => {
+    const playing = !audio.paused;
+    button.textContent = playing ? '♫ Pausar música' : '♫ Activar música';
+    button.setAttribute('aria-pressed', String(playing));
+  };
+  button.addEventListener('click', async () => {
+    if (!audio.paused) { audio.pause(); updateButton(); return; }
+    try { await audio.play(); } catch (error) { console.warn('No se pudo reproducir musica.mp3', error); }
+    updateButton();
+  });
+  // Intentar reproducir tras una interacción del visitante con la página.
+  document.addEventListener('click', async event => {
+    if (event.target === button || !audio.paused) return;
+    try { await audio.play(); } catch (error) { /* El navegador puede bloquearlo. */ }
+    updateButton();
+  });
+  audio.addEventListener('play', updateButton);
+  audio.addEventListener('pause', updateButton);
 })();
 </script>
 </body>
