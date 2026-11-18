@@ -77,11 +77,18 @@ body{color:#ecf5ff;font-family:'DM Sans',Arial,sans-serif}
 </style>
 
 <style>
-#musicToggle{position:fixed;right:18px;bottom:18px;z-index:9999;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:12px 18px;background:rgba(3,20,30,.82);color:#fff;font:500 14px 'DM Sans',sans-serif;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 5px 24px rgba(0,0,0,.3)}
-#musicToggle:focus-visible{outline:2px solid #8ceaff;outline-offset:3px}
+#pantallaInicio{position:fixed;inset:0;z-index:10000;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;cursor:pointer;transition:opacity 1.1s ease,visibility 1.1s ease;font-family:'DM Sans',Arial,sans-serif}
+#pantallaInicio.oculta{opacity:0;visibility:hidden;pointer-events:none}
+#pantallaInicio .mensaje{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,6vw,58px);font-weight:400;letter-spacing:.04em}
+#pantallaInicio .pista{font-size:13px;color:#aeb6c0;letter-spacing:.14em;text-transform:uppercase}
+#pantallaInicio:focus-visible{outline:3px solid #9fe5ff;outline-offset:-8px}
 </style>
 </head>
 <body>
+<div id="pantallaInicio" role="button" tabindex="0" aria-label="Presiona para continuar y escuchar la música">
+  <div class="mensaje">Presiona para continuar</div>
+  <div class="pista">Una sorpresa te espera ✨</div>
+</div>
 <main id="world" class="" aria-label="Jardín nocturno realista con lirio azul, mariposas luminosas y lluvia suave">
   <div id="blurBackground" aria-hidden="true"></div>
   <div id="sideVignette" aria-hidden="true"></div>
@@ -222,30 +229,26 @@ initScene();updateClock();requestAnimationFrame(tick);setInterval(updateClock,25
 </script>
 
 <audio id="birthdayMusic" src="musica.mp3" loop preload="auto"></audio>
-<button id="musicToggle" type="button" aria-pressed="false">♫ Activar música</button>
 <script>
 (() => {
+  const inicio = document.getElementById('pantallaInicio');
   const audio = document.getElementById('birthdayMusic');
-  const button = document.getElementById('musicToggle');
   audio.volume = 0.55;
-  const updateButton = () => {
-    const playing = !audio.paused;
-    button.textContent = playing ? '♫ Pausar música' : '♫ Activar música';
-    button.setAttribute('aria-pressed', String(playing));
-  };
-  button.addEventListener('click', async () => {
-    if (!audio.paused) { audio.pause(); updateButton(); return; }
-    try { await audio.play(); } catch (error) { console.warn('No se pudo reproducir musica.mp3', error); }
-    updateButton();
+  let iniciado = false;
+  function continuar() {
+    if (iniciado) return;
+    iniciado = true;
+    inicio.classList.add('oculta');
+    inicio.setAttribute('aria-hidden', 'true');
+    audio.play().catch(error => console.warn('No se pudo reproducir musica.mp3:', error));
+  }
+  inicio.addEventListener('click', continuar);
+  inicio.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      continuar();
+    }
   });
-  // Intentar reproducir tras una interacción del visitante con la página.
-  document.addEventListener('click', async event => {
-    if (event.target === button || !audio.paused) return;
-    try { await audio.play(); } catch (error) { /* El navegador puede bloquearlo. */ }
-    updateButton();
-  });
-  audio.addEventListener('play', updateButton);
-  audio.addEventListener('pause', updateButton);
 })();
 </script>
 </body>
